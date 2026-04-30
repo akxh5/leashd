@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  --color-clay-pink: #FFD1E3;
+  --color-clay-blue: #B7E5FF;
+  --color-clay-purple: #E5D1FF;
+  --color-clay-mint: #D1FFEF;
+  --color-clay-gray: #F2F6F9;
+  
+  --shadow-clay-outset: 8px 8px 16px rgba(163, 177, 198, 0.6), -8px -8px 16px rgba(255, 255, 255, 0.8);
+  --shadow-clay-inset: inset 4px 4px 10px rgba(163, 177, 198, 0.5), inset -4px -4px 10px rgba(255, 255, 255, 0.8);
+  --shadow-clay-active: inset 8px 8px 16px rgba(163, 177, 198, 0.6), inset -8px -8px 16px rgba(255, 255, 255, 0.8);
+  
+  --radius-4xl: 30px;
+  --radius-5xl: 45px;
+}
+
+:root {
+  background-color: #F0F4F8;
+  color: #4A5568;
+}
+
+body {
+  margin: 0;
+  font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.clay-card {
+  @apply bg-white rounded-4xl shadow-clay-outset border-4 border-white transition-all duration-300;
+}
+
+.clay-button {
+  @apply bg-clay-blue rounded-full shadow-clay-outset px-6 py-3 font-bold text-gray-700 active:shadow-clay-active hover:scale-105 transition-all;
+}
+
+.clay-input {
+  @apply bg-clay-gray rounded-2xl shadow-clay-inset px-4 py-3 border-none focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all;
+}
