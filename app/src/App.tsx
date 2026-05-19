@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
@@ -6,7 +6,9 @@ import { useProgram } from './hooks/useProgram';
 import { WalletStatus } from './components/WalletStatus';
 import { KillSwitch } from './components/KillSwitch';
 import { PolicyConfig } from './components/PolicyConfig';
-import { Activity, ShieldCheck, Zap, AlertCircle } from 'lucide-react';
+import { TransactionFeed, Transaction } from './components/TransactionFeed';
+import { startAgent } from './agent';
+import { ShieldAlert, Zap, AlertCircle } from 'lucide-react';
 
 function App() {
   const { connection } = useConnection();
@@ -18,8 +20,14 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [walletConfig, setWalletConfig] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   const [configPda, setConfigPda] = useState<PublicKey | null>(null);
+
+  const isOwner = useMemo(() => {
+    if (!publicKey || !walletConfig) return false;
+    return publicKey.toBase58() === walletConfig.owner.toBase58();
+  }, [publicKey, walletConfig]);
 
   const fetchState = useCallback(async () => {
     if (!publicKey || !program) return;
@@ -34,7 +42,7 @@ function App() {
       const bal = await connection.getBalance(pda);
       setBalance(bal / LAMPORTS_PER_SOL);
 
-      const config = await program.account.walletConfig.fetch(pda);
+      const config = await (program.account as any).walletConfig.fetch(pda);
       setWalletConfig(config);
       setIsFrozen(config.isFrozen);
       setError(null);
@@ -54,18 +62,30 @@ function App() {
     return () => clearInterval(id);
   }, [fetchState]);
 
+  // Agent Simulation Integration
+  useEffect(() => {
+    if (program && publicKey && configPda && walletConfig && isOwner) {
+      const stopAgent = startAgent(
+        program,
+        publicKey,
+        configPda,
+        walletConfig.allowlist.length > 0 ? walletConfig.allowlist : [PublicKey.default],
+        (result) => {
+          setTransactions(prev => [result, ...prev].slice(0, 50));
+          fetchState();
+        }
+      );
+      return () => stopAgent();
+    }
+  }, [program, publicKey, configPda, walletConfig, isOwner, fetchState]);
+
   const handleInitialize = async () => {
     if (!publicKey || !program) return;
     setIsLoading(true);
     try {
-      const [configPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("wallet_config"), publicKey.toBuffer()],
-        program.programId
-      );
-
       await program.methods
         .initializeWallet({
-          agent: publicKey, // Self-agent for demo
+          agent: publicKey, 
           maxTxAmount: (0.1 * LAMPORTS_PER_SOL) as any,
           dailyLimit: (0.5 * LAMPORTS_PER_SOL) as any,
           windowDuration: (24 * 60 * 60) as any,
@@ -82,7 +102,7 @@ function App() {
   };
 
   const handleToggleFreeze = async () => {
-    if (!publicKey || !program) return;
+    if (!publicKey || !program || !isOwner) return;
     setIsLoading(true);
     try {
       await program.methods.toggleFreeze().rpc();
@@ -95,7 +115,7 @@ function App() {
   };
 
   const handleUpdatePolicy = async (newPolicy: any) => {
-    if (!publicKey || !program) return;
+    if (!publicKey || !program || !isOwner) return;
     setIsLoading(true);
     try {
       await program.methods
@@ -121,7 +141,6 @@ function App() {
         <WalletMultiButton />
       </div>
 
-      {/* Header Section */}
       <header className="mb-16 text-center space-y-4">
         <div className="flex items-center justify-center gap-4 mb-4">
           <div className="p-5 bg-white rounded-5xl shadow-clay-outset hover:rotate-12 transition-transform">
@@ -153,9 +172,7 @@ function App() {
         </div>
       )}
 
-      {/* Main Dashboard Grid */}
       <main className={`grid grid-cols-1 lg:grid-cols-12 gap-10 w-full max-w-7xl ${(!publicKey || !walletConfig) ? 'opacity-50 pointer-events-none' : ''}`}>
-        {/* Left Column: Core Controls */}
         <div className="lg:col-span-4 flex flex-col gap-10 items-center lg:items-end">
           <WalletStatus 
             balance={balance} 
@@ -163,56 +180,44 @@ function App() {
             isFrozen={isFrozen}
             onRefresh={fetchState}
           />
-          <KillSwitch 
-            isFrozen={isFrozen} 
-            onToggle={handleToggleFreeze}
-            isLoading={isLoading}
-          />
+          
+          {isOwner ? (
+            <KillSwitch 
+              isFrozen={isFrozen} 
+              onToggle={handleToggleFreeze}
+              isLoading={isLoading}
+            />
+          ) : (
+            <div className="clay-card p-8 flex flex-col items-center text-center gap-4 border-t-8 border-clay-purple max-w-md w-full">
+              <ShieldAlert className="w-12 h-12 text-clay-purple" />
+              <p className="font-bold text-gray-600">ReadOnly Mode</p>
+              <p className="text-xs text-gray-400 font-medium">Connect owner wallet to manage policies</p>
+            </div>
+          )}
         </div>
 
-        {/* Right Column: Policy & Intel */}
         <div className="lg:col-span-8 flex flex-col gap-10">
-          <PolicyConfig 
-            currentPolicy={{
-              maxTxAmount: walletConfig ? Number(walletConfig.maxTxAmount) / LAMPORTS_PER_SOL : 0,
-              dailyLimit: walletConfig ? Number(walletConfig.dailyLimit) / LAMPORTS_PER_SOL : 0,
-              allowlist: walletConfig?.allowlist?.map((p: PublicKey) => p.toBase58()) || []
-            }}
-            onUpdate={handleUpdatePolicy}
-            isLoading={isLoading}
-          />
-
-          {/* Intel Feed Preview */}
-          <div className="clay-card p-10">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-3">
-                <Activity className="w-7 h-7 text-gray-700" />
-                <h3 className="text-2xl font-black text-gray-700">Agent Intel Feed</h3>
-              </div>
-              <span className="bg-clay-blue px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest text-gray-700">Live</span>
+          {isOwner ? (
+            <PolicyConfig 
+              currentPolicy={{
+                maxTxAmount: walletConfig ? Number(walletConfig.maxTxAmount) / LAMPORTS_PER_SOL : 0,
+                dailyLimit: walletConfig ? Number(walletConfig.dailyLimit) / LAMPORTS_PER_SOL : 0,
+                allowlist: walletConfig?.allowlist?.map((p: PublicKey) => p.toBase58()) || []
+              }}
+              onUpdate={handleUpdatePolicy}
+              isLoading={isLoading}
+            />
+          ) : (
+            <div className="clay-card p-10 flex flex-col items-center justify-center min-h-[300px] gap-4">
+              <ShieldAlert className="w-16 h-16 text-gray-200" />
+              <p className="text-xl font-black text-gray-300">Policy Management Locked</p>
             </div>
+          )}
 
-            <div className="space-y-6">
-              {walletConfig ? (
-                <div className="flex items-center gap-6 p-6 bg-clay-gray rounded-4xl shadow-clay-inset hover:scale-[1.02] transition-transform">
-                  <div className="p-4 bg-white rounded-3xl shadow-clay-outset">
-                    <ShieldCheck className="w-7 h-7 text-clay-mint" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-gray-800">System Ready</p>
-                    <p className="text-sm text-gray-500 font-medium">Vault monitored by Agent {walletConfig.agent.toBase58().slice(0,6)}...</p>
-                  </div>
-                  <div className="ml-auto text-xs font-black text-gray-400">Just now</div>
-                </div>
-              ) : (
-                <p className="text-center text-gray-400 font-bold py-10 italic">No activity yet. Deploy vault to begin.</p>
-              )}
-            </div>
-          </div>
+          <TransactionFeed transactions={transactions} />
         </div>
       </main>
 
-      {/* Footer Branding */}
       <footer className="mt-20 opacity-40 hover:opacity-100 transition-opacity flex items-center gap-2">
         <div className="w-8 h-8 bg-gray-300 rounded-full shadow-clay-inset" />
         <span className="font-black text-gray-600 uppercase tracking-widest text-sm">Autonomous Security by Leashd</span>

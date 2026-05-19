@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import { Connection, PublicKey } from '@solana/web3.js';
-import { AnchorProvider, Program, Idl } from '@coral-xyz/anchor';
+import { AnchorProvider, Program } from '@coral-xyz/anchor';
 import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
 import idl from '../idl/agent_wallet.json';
+import { AgentWallet } from '../idl/agent_wallet';
 
 export const useProgram = () => {
   const { connection } = useConnection();
@@ -15,7 +16,7 @@ export const useProgram = () => {
       preflightCommitment: 'processed',
     });
 
-    return new Program(idl as Idl, provider);
+    return new Program(idl as AgentWallet, provider);
   }, [connection, wallet]);
 
   return program;
