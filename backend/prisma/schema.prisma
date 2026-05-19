@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Plan {
+  free
+  starter
+  pro
+  enterprise
+}
+
+enum Cluster {
+  devnet
+  mainnet
+}
+
+enum TxStatus {
+  success
+  blocked
+  pending
+}
+
+enum AlertType {
+  freeze
+  daily_limit_80
+  daily_limit_100
+  blocked_tx
+  low_balance
+}
+
+enum AlertChannel {
+  email
+  webhook
+  telegram
+}
+
+enum SubscriptionStatus {
+  active
+  past_due
+  cancelled
+}
+
+model User {
+  id                 String    @id @default(uuid())
+  email              String    @unique
+  name               String?
+  createdAt          DateTime  @default(now())
+  stripeCustomerId   String?
+  plan               Plan      @default(free)
+  apiKey             String    @unique @default(uuid())
+  wallets            Wallet[]
+  subscriptions      Subscription[]
+}
+
+model Wallet {
+  id            String    @id @default(uuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  name          String
+  pdaAddress    String    @unique
+  ownerPubkey   String
+  agentPubkey   String
+  cluster       Cluster   @default(devnet)
+  createdAt     DateTime  @default(now())
+  isActive      Boolean   @default(true)
+  policy        WalletPolicy?
+  transactions  Transaction[]
+  alerts        Alert[]
+}
+
+model WalletPolicy {
+  id              String    @id @default(uuid())
+  walletId        String    @unique
+  wallet          Wallet    @relation(fields: [walletId], references: [id])
+  maxTxAmount     BigInt
+  dailyLimit      BigInt
+  cooldownSecs    Int
+  windowDuration  Int
+  isFrozen        Boolean   @default(false)
+  allowlist       String[]
+  updatedAt       DateTime  @updatedAt
+}
+
+model Transaction {
+  id            String    @id @default(uuid())
+  walletId      String
+  wallet        Wallet    @relation(fields: [walletId], references: [id])
+  signature     String?
+  agentPubkey   String
+  recipient     String
+  amount        BigInt
+  status        TxStatus
+  blockReason   String?
+  timestamp     DateTime  @default(now())
+  slot          BigInt?
+}
+
+model Alert {
+  id          String        @id @default(uuid())
+  walletId    String
+  wallet      Wallet        @relation(fields: [walletId], references: [id])
+  type        AlertType
+  channel     AlertChannel
+  destination String
+  isActive    Boolean       @default(true)
+}
+
+model Subscription {
+  id                  String              @id @default(uuid())
+  userId              String
+  user                User                @relation(fields: [userId], references: [id])
+  stripeSubId         String              @unique
+  plan                Plan
+  walletLimit         Int
+  status              SubscriptionStatus  @default(active)
+  currentPeriodEnd    DateTime
+}
