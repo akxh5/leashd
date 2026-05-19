@@ -1,14 +1,15 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { PublicKey, Keypair, LAMPORTS_PER_SOL, SystemProgram } from "@solana/web3.js";
-import { IDL } from "./target/types/agent_wallet"; // Assuming anchor generated types
+import * as idl from "./target/idl/agent_wallet.json";
+import { AgentWallet } from "./target/types/agent_wallet";
 
 async function main() {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
-  const programId = new PublicKey("HzUhxgap8Jr8wSq8Q8jQBPxFAgXYSbbp3XC6uuGN3qbR");
-  const program = new Program(IDL as any, provider);
+  const program = new Program(idl as any, provider) as Program<AgentWallet>;
+  const programId = program.programId;
 
   const owner = provider.wallet.publicKey;
   const [configPda] = PublicKey.findProgramAddressSync(
