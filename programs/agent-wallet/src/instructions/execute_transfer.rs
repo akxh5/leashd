@@ -57,24 +57,12 @@ pub fn handle_execute_transfer(ctx: Context<ExecuteTransfer>, amount: u64) -> Re
         AgentWalletError::ExceedsDailyLimit
     );
     
-    // 7. CPI transfer — PDA is the vault, use new_with_signer
-    let owner_key = ctx.accounts.owner.key();
-    let seeds = &[
-        b"wallet_config",
-        owner_key.as_ref(),
-        &[bump],
-    ];
-    let signer_seeds = &[&seeds[..]];
-    
-    let cpi_ctx = CpiContext::new_with_signer(
-        ctx.accounts.system_program.to_account_info(),
-        system_program::Transfer {
-            from: wallet_config_info,
-            to: ctx.accounts.recipient.to_account_info(),
-        },
-        signer_seeds,
-    );
-    system_program::transfer(cpi_ctx, amount)?;
+    // 7. Transfer lamports
+    let from_account = wallet_config.to_account_info();
+    let to_account = ctx.accounts.recipient.to_account_info();
+
+    **from_account.try_borrow_mut_lamports()? -= amount;
+    **to_account.try_borrow_mut_lamports()? += amount;
     
     // 8. Update state
     wallet_config.spent_in_window += amount;
