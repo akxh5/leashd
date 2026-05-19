@@ -10,39 +10,43 @@ interface WalletStatusProps {
 
 export const WalletStatus: React.FC<WalletStatusProps> = ({ balance, address, isFrozen, onRefresh }) => {
   return (
-    <div className="clay-card p-8 flex flex-col gap-4 max-w-md w-full">
-      <div className="flex justify-between items-center mb-2">
-        <h2 className="text-2xl font-black text-gray-700">Wallet Status</h2>
+    <div className="leashd-card p-8 flex flex-col gap-6 max-w-md w-full">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xs font-cormorant italic uppercase tracking-[0.15em] text-[#F0EBE3]/45">
+          Wallet Status
+        </h2>
         <button 
           onClick={onRefresh}
-          className="p-3 bg-clay-purple rounded-full shadow-clay-outset active:shadow-clay-active hover:rotate-180 transition-all duration-500"
+          className="p-2 text-[#F0EBE3]/45 hover:text-[#00A19B] transition-colors"
         >
-          <RefreshCw className="w-6 h-6 text-gray-700" />
+          <RefreshCw className="w-4 h-4" />
         </button>
       </div>
 
-      <div className="bg-clay-gray p-6 rounded-3xl shadow-clay-inset space-y-3">
-        <div className="flex items-center gap-3">
-          <Wallet className="text-clay-blue w-6 h-6" />
-          <span className="font-bold text-lg">{balance.toFixed(4)} SOL</span>
+      <div className="space-y-4">
+        <div className="flex items-baseline gap-2">
+          <span className="text-4xl font-mono font-medium tracking-tight">{balance.toFixed(4)}</span>
+          <span className="text-sm font-bold text-[#00A19B]">SOL</span>
         </div>
-        <div className="text-xs text-gray-500 font-mono break-all bg-white/50 p-2 rounded-xl">
+        
+        <div className="text-[10px] font-mono text-[#F0EBE3]/30 break-all bg-white/[0.02] p-3 rounded-lg border border-white/[0.05]">
           {address}
         </div>
       </div>
 
-      <div className={`flex items-center gap-3 p-4 rounded-2xl ${isFrozen ? 'bg-red-100' : 'bg-clay-mint'} transition-colors duration-300`}>
+      <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${
+        isFrozen 
+          ? 'bg-[#7B61FF]/10 border-[#7B61FF]/30 text-[#7B61FF]' 
+          : 'bg-[#00A19B]/10 border-[#00A19B]/30 text-[#00A19B]'
+      } transition-colors duration-500`}>
         {isFrozen ? (
-          <>
-            <ShieldOff className="text-red-500 w-8 h-8" />
-            <span className="font-black text-red-600">WALLET FROZEN</span>
-          </>
+          <ShieldOff className="w-5 h-5" />
         ) : (
-          <>
-            <Shield className="text-green-500 w-8 h-8" />
-            <span className="font-black text-green-600">AGENT ACTIVE</span>
-          </>
+          <Shield className="w-5 h-5" />
         )}
+        <span className="text-[10px] font-black uppercase tracking-[0.15em]">
+          {isFrozen ? 'Vault Frozen' : 'Agent Active'}
+        </span>
       </div>
     </div>
   );
