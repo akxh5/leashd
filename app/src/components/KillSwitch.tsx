@@ -1,5 +1,5 @@
-import React from 'react';
-import { Power, Shield, ShieldOff, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Zap, AlertTriangle, ShieldCheck } from 'lucide-react';
 
 interface KillSwitchProps {
   isFrozen: boolean;
@@ -8,41 +8,83 @@ interface KillSwitchProps {
 }
 
 export const KillSwitch: React.FC<KillSwitchProps> = ({ isFrozen, onToggle, isLoading }) => {
-  return (
-    <div className="leashd-card p-8 flex flex-col items-center gap-6 max-w-md w-full">
-      <h2 className="text-xs font-cormorant italic uppercase tracking-[0.15em] text-[#F0EBE3]/45">
-        Emergency Protocol
-      </h2>
-      
-      <button
-        onClick={onToggle}
-        disabled={isLoading}
-        className={`
-          relative w-32 h-32 rounded-full flex items-center justify-center transition-all duration-500 group
-          ${isFrozen 
-            ? 'border-[1.5px] border-[#7B61FF] text-[#7B61FF] shadow-[0_0_24px_rgba(123,97,255,0.15)]' 
-            : 'border-[1.5px] border-[#FF4560] text-[#FF4560] hover:shadow-[0_0_24px_rgba(255,69,96,0.15)]'
-          }
-          ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95'}
-        `}
-      >
-        {isLoading ? (
-          <Loader2 className="w-12 h-12 animate-spin" />
-        ) : isFrozen ? (
-          <ShieldOff className="w-12 h-12" />
-        ) : (
-          <Power className="w-12 h-12" />
-        )}
-      </button>
+  const [showConfirm, setShowConfirm] = useState(false);
 
-      <div className="text-center">
-        <p className={`text-xs font-black uppercase tracking-[0.2em] ${isFrozen ? 'text-[#7B61FF]' : 'text-[#FF4560]'}`}>
-          {isFrozen ? 'System Frozen' : 'Live Authorization'}
-        </p>
-        <p className="text-xs text-[#F0EBE3]/45 mt-3 font-medium leading-relaxed max-w-[200px]">
-          Immediate owner override to {isFrozen ? 'enable' : 'disable'} all agent transactions.
-        </p>
+  const handleToggle = () => {
+    if (!isFrozen && !showConfirm) {
+      setShowConfirm(true);
+      return;
+    }
+    onToggle();
+    setShowConfirm(false);
+  };
+
+  return (
+    <div className={`leashd-card relative overflow-hidden flex flex-col gap-6 transition-all duration-500 ${isFrozen ? 'border-[var(--danger)] glow-danger' : 'border-[var(--border)]'}`}>
+      <div className="flex items-center justify-between relative z-10">
+        <div className="flex items-center gap-3">
+          <Zap className={`w-5 h-5 ${isFrozen ? 'text-[var(--danger)]' : 'text-[var(--accent-teal)]'}`} />
+          <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--text-secondary)]">Emergency Kill Switch</h3>
+        </div>
+        {isFrozen && (
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--danger)] animate-pulse">
+            System Locked
+          </span>
+        )}
       </div>
+
+      <p className="text-[13px] text-[var(--text-muted)] leading-relaxed relative z-10">
+        The Kill Switch is an on-chain instruction that instantly freezes the vault. No agent can execute transfers until you manually unfreeze.
+      </p>
+
+      {showConfirm && !isFrozen ? (
+        <div className="space-y-4 animate-fade-in relative z-10">
+          <div className="p-4 bg-[var(--danger)]/5 border border-[var(--danger)]/20 flex items-center gap-3">
+            <AlertTriangle className="w-4 h-4 text-[var(--danger)]" />
+            <p className="text-[11px] text-[var(--danger)] font-medium uppercase tracking-wider">
+              Confirm immediate vault lockdown?
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button 
+              onClick={handleToggle}
+              disabled={isLoading}
+              className="flex-1 bg-[var(--danger)] text-[var(--bg-base)] py-4 font-bold uppercase tracking-widest text-[11px] hover:opacity-90 transition-opacity"
+            >
+              {isLoading ? 'Processing...' : 'Execute Freeze'}
+            </button>
+            <button 
+              onClick={() => setShowConfirm(false)}
+              className="px-6 border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-[11px] uppercase font-bold tracking-widest"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={handleToggle}
+          disabled={isLoading}
+          className={`relative z-10 w-full py-5 font-bold uppercase tracking-[0.3em] text-[12px] transition-all flex items-center justify-center gap-3 
+            ${isFrozen 
+              ? 'bg-[var(--bg-elevated)] border border-[var(--accent-teal)]/30 text-[var(--accent-teal)] hover:bg-[var(--accent-teal)]/10' 
+              : 'bg-[var(--danger)]/5 border border-[var(--danger)]/40 text-[var(--danger)] hover:bg-[var(--danger)]/10'}`}
+        >
+          {isLoading ? (
+            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+          ) : isFrozen ? (
+            <>
+              <ShieldCheck className="w-4 h-4" />
+              Lift Emergency Lock
+            </>
+          ) : (
+            <>
+              <Zap className="w-4 h-4" />
+              Kill Switch: FREEZE
+            </>
+          )}
+        </button>
+      )}
     </div>
   );
 };

@@ -1,148 +1,137 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600;1,700&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
-
-:root {
-  --bg-primary: #0A0A0F;
-  --bg-secondary: #0F0F1A;
-  --bg-card: #13131F;
-  --bg-card-hover: #1A1A2E;
-  --border: rgba(255, 255, 255, 0.06);
-  --border-accent: rgba(0, 161, 155, 0.3);
-  --text-primary: #F0EBE3;
-  --text-muted: rgba(240, 235, 227, 0.45);
-  --teal: #00A19B;
-  --teal-glow: rgba(0, 161, 155, 0.15);
-  --teal-bright: #00C4BD;
-  --purple: #7B61FF;
-  --purple-glow: rgba(123, 97, 255, 0.15);
-  --red: #FF4560;
-  --red-glow: rgba(255, 69, 96, 0.15);
-  --green: #00E396;
-}
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
 @theme {
-  --color-bg-primary: var(--bg-primary);
-  --color-bg-secondary: var(--bg-secondary);
-  --color-bg-card: var(--bg-card);
-  --color-bg-card-hover: var(--bg-card-hover);
-  --color-teal-brand: var(--teal);
-  --color-purple-brand: var(--purple);
-  --color-text-primary: var(--text-primary);
-  --color-text-muted: var(--text-muted);
+  --font-serif: "Instrument Serif", serif;
+  --font-mono: "DM Mono", monospace;
+  --font-sans: "Inter", sans-serif;
 }
 
-body {
-  margin: 0;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: 'Inter', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+:root {
+  --bg-base: #0A0A0F;
+  --bg-surface: oklch(14% 0.01 260);
+  --bg-elevated: oklch(18% 0.01 260);
+  --border: oklch(100% 0 0 / 0.06);
+  --border-hover: oklch(65% 0.15 190 / 0.4);
+  --text-primary: #F0EBE3;
+  --text-secondary: oklch(75% 0.01 60);
+  --text-muted: oklch(40% 0.01 60);
+  --accent-teal: #00A19B;
+  --accent-teal-glow: oklch(65% 0.15 190 / 0.15);
+  --accent-purple: #7B61FF;
+  --accent-purple-glow: oklch(60% 0.2 270 / 0.15);
+  --danger: #FF4560;
+  --danger-glow: oklch(65% 0.2 20 / 0.15);
+  --success: oklch(75% 0.15 160);
+  
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-h1, h2, h3, .font-cormorant {
-  font-family: 'Cormorant Garamond', serif;
+@layer utilities {
+  .animate-entrance {
+    animation: entrance 0.8s var(--ease-out-expo) both;
+  }
+
+  @keyframes entrance {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
-.italic-upper {
-  font-style: italic;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+@layer base {
+  body {
+    @apply bg-[var(--bg-base)] text-[var(--text-primary)] antialiased selection:bg-[var(--accent-teal)]/30;
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, .font-serif {
+    font-family: var(--font-serif);
+    @apply italic uppercase tracking-wider;
+  }
+
+  .font-mono {
+    font-family: var(--font-mono);
+  }
 }
 
-code, .font-mono {
-  font-family: 'DM Mono', monospace;
+@layer components {
+  .leashd-card {
+    @apply bg-[var(--bg-surface)] border border-[var(--border)] rounded-none p-6 transition-all duration-300;
+  }
+
+  .leashd-card:hover {
+    @apply border-[var(--border-hover)];
+  }
+
+  .leashd-button {
+    @apply px-6 py-3 font-bold uppercase tracking-widest text-[11px] transition-all active:scale-[0.98] rounded-none;
+  }
+
+  .leashd-button-primary {
+    @apply px-6 py-3 font-bold uppercase tracking-widest text-[11px] transition-all active:scale-[0.98] rounded-none bg-[var(--accent-teal)] text-[var(--bg-base)] hover:bg-[var(--accent-teal)]/90;
+  }
+
+  .leashd-button-outline {
+    @apply px-6 py-3 font-bold uppercase tracking-widest text-[11px] transition-all active:scale-[0.98] rounded-none border border-[var(--border)] text-[var(--text-primary)] hover:border-[var(--accent-teal)]/40;
+  }
+
+  .leashd-input {
+    @apply bg-[var(--bg-elevated)] border border-[var(--border)] px-4 py-3 text-[13px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-teal)]/40 transition-colors w-full;
+  }
+
+  .data-row {
+    @apply flex items-center justify-between py-3 border-b border-[var(--border)] text-[11px];
+  }
+
+  .data-label {
+    @apply text-[var(--text-secondary)] uppercase tracking-widest font-bold;
+  }
+
+  .data-value {
+    @apply font-mono text-[var(--text-primary)];
+  }
 }
 
-/* Animations */
-@keyframes float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(30px, -20px) scale(1.05); }
-  66% { transform: translate(-20px, 10px) scale(0.95); }
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,161,155,0.4); }
-  50% { opacity: 0.8; box-shadow: 0 0 0 6px rgba(0,161,155,0); }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-.animate-fade-up {
-  animation: fadeUp 0.8s ease forwards;
-}
-
-.animate-float {
-  animation: float 8s ease-in-out infinite;
-}
-
-.animate-float-reverse {
-  animation: float 10s ease-in-out infinite reverse;
-}
-
-.animate-pulse-teal {
-  animation: pulse 2s infinite;
-}
-
-/* Scrollbar */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--teal) transparent;
-}
-
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-[var(--bg-base)];
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--teal);
-  border-radius: 4px;
+  @apply bg-[var(--border)] hover:bg-[var(--text-muted)] transition-colors;
 }
 
-/* Component Styles */
-.leashd-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  transition: border-color 0.2s ease, transform 0.2s ease;
+/* Animations */
+.glow-teal {
+  box-shadow: 0 0 40px var(--accent-teal-glow);
 }
 
-.leashd-card:hover {
-  border-color: var(--border-accent);
-  transform: translateY(-2px);
+.glow-purple {
+  box-shadow: 0 0 40px var(--accent-purple-glow);
 }
 
-.btn-primary {
-  background: var(--teal);
-  color: #0A0A0F;
-  font-weight: 600;
-  border-radius: 8px;
-  padding: 12px 24px;
-  transition: all 0.2s;
+.glow-danger {
+  box-shadow: 0 0 40px var(--danger-glow);
 }
 
-.btn-primary:hover {
-  background: var(--teal-bright);
-  transform: translateY(-1px);
+.pulse-danger {
+  animation: pulse-danger 2s infinite;
 }
 
-.btn-secondary {
-  border: 1px solid var(--teal);
-  color: var(--teal);
-  font-weight: 600;
-  border-radius: 8px;
-  padding: 12px 24px;
-  transition: all 0.2s;
-}
-
-.btn-secondary:hover {
-  background: var(--teal-glow);
+@keyframes pulse-danger {
+  0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.4); }
+  70% { box-shadow: 0 0 0 20px rgba(255, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
 }

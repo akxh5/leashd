@@ -1,88 +1,142 @@
 import React, { useState } from 'react';
-import { Settings, Plus, X, Terminal } from 'lucide-react';
+import { Settings, Save, Info, Plus, X } from 'lucide-react';
 
 interface PolicyConfigProps {
-  currentPolicy: any;
+  currentPolicy: {
+    maxTxAmount: number;
+    dailyLimit: number;
+    allowlist: string[];
+  };
   onUpdate: (newPolicy: any) => void;
   isLoading: boolean;
 }
 
 export const PolicyConfig: React.FC<PolicyConfigProps> = ({ currentPolicy, onUpdate, isLoading }) => {
-  const [maxTx, setMaxTx] = useState(currentPolicy?.maxTxAmount || 0.1);
-  const [dailyLimit, setDailyLimit] = useState(currentPolicy?.dailyLimit || 0.5);
-  
+  const [maxTx, setMaxTx] = useState(currentPolicy.maxTxAmount.toString());
+  const [dailyLimit, setDailyLimit] = useState(currentPolicy.dailyLimit.toString());
+  const [newRecipient, setNewRecipient] = useState("");
+  const [allowlist, setAllowlist] = useState<string[]>(currentPolicy.allowlist);
+
+  const handleSave = () => {
+    onUpdate({
+      maxTx: parseFloat(maxTx),
+      dailyLimit: parseFloat(dailyLimit),
+      allowlist: allowlist
+    });
+  };
+
+  const addRecipient = () => {
+    if (newRecipient && !allowlist.includes(newRecipient)) {
+      setAllowlist([...allowlist, newRecipient]);
+      setNewRecipient("");
+    }
+  };
+
+  const removeRecipient = (addr: string) => {
+    setAllowlist(allowlist.filter(a => a !== addr));
+  };
+
   return (
-    <div className="leashd-card p-10 flex flex-col gap-8 w-full">
+    <div className="leashd-card space-y-10">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-[#00A19B]/10 rounded-lg text-[#00A19B]">
-            <Settings className="w-5 h-5" />
-          </div>
-          <h2 className="text-xs font-cormorant italic uppercase tracking-[0.15em] text-[#F0EBE3]/45">
-            Policy Configuration
-          </h2>
+          <Settings className="w-5 h-5 text-[var(--accent-teal)]" />
+          <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--text-secondary)]">Guardrail Configuration</h3>
         </div>
-        {isLoading && <span className="text-[10px] font-mono text-[#00A19B] animate-pulse">SYNCING ON-CHAIN...</span>}
+        <div className="flex items-center gap-2 px-3 py-1 bg-[var(--accent-teal)]/5 border border-[var(--accent-teal)]/20">
+          <Info className="w-3 h-3 text-[var(--accent-teal)]" />
+          <span className="text-[9px] font-bold uppercase tracking-widest text-[var(--accent-teal)]">On-Chain Policy</span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-        <div className="space-y-3">
-          <label className="text-[10px] font-bold text-[#F0EBE3]/30 uppercase tracking-widest ml-1">Max Per Transaction (SOL)</label>
-          <div className="relative">
-            <input 
-              type="number"
-              value={maxTx}
-              onChange={(e) => setMaxTx(parseFloat(e.target.value))}
-              className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-4 font-mono text-xl focus:border-[#00A19B]/50 outline-none transition-all"
-            />
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[#00A19B]">MAX_TX</div>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Max Transaction (SOL)</label>
+            <span className="text-[10px] font-mono text-[var(--accent-teal)]">Current: {currentPolicy.maxTxAmount}</span>
           </div>
+          <input 
+            type="number" 
+            value={maxTx}
+            onChange={(e) => setMaxTx(e.target.value)}
+            className="leashd-input !text-lg !font-mono"
+            placeholder="0.1"
+          />
+          <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
+            Individual transaction cap. Any attempt above this is blocked by the program.
+          </p>
         </div>
-        <div className="space-y-3">
-          <label className="text-[10px] font-bold text-[#F0EBE3]/30 uppercase tracking-widest ml-1">Daily Spending Limit (SOL)</label>
-          <div className="relative">
-            <input 
-              type="number"
-              value={dailyLimit}
-              onChange={(e) => setDailyLimit(parseFloat(e.target.value))}
-              className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-4 font-mono text-xl focus:border-[#00A19B]/50 outline-none transition-all"
-            />
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[#00A19B]">LIMIT_24H</div>
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Daily Spending Limit (SOL)</label>
+            <span className="text-[10px] font-mono text-[var(--accent-purple)]">Current: {currentPolicy.dailyLimit}</span>
           </div>
+          <input 
+            type="number" 
+            value={dailyLimit}
+            onChange={(e) => setDailyLimit(e.target.value)}
+            className="leashd-input !text-lg !font-mono"
+            placeholder="1.0"
+          />
+          <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
+            Total spending allowed per 24h rolling window across all transactions.
+          </p>
         </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="flex justify-between items-center px-1">
-          <label className="text-[10px] font-bold text-[#F0EBE3]/30 uppercase tracking-widest">Authorized Recipients</label>
-          <button className="text-[10px] font-bold text-[#00A19B] hover:text-[#00C4BD] flex items-center gap-1 uppercase tracking-widest">
-            <Plus className="w-3 h-3" /> Add Address
+      <div className="space-y-6 pt-6 border-t border-[var(--border)]">
+        <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Recipient Allowlist</label>
+        
+        <div className="flex gap-3">
+          <input 
+            type="text" 
+            value={newRecipient}
+            onChange={(e) => setNewRecipient(e.target.value)}
+            className="leashd-input !py-4 font-mono text-[11px]"
+            placeholder="Enter Solana Address..."
+          />
+          <button 
+            onClick={addRecipient}
+            className="px-6 bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] hover:border-[var(--accent-teal)]/40 transition-colors"
+          >
+            <Plus className="w-5 h-5" />
           </button>
         </div>
-        <div className="bg-black/20 rounded-2xl border border-white/[0.05] p-2 space-y-2 min-h-[120px]">
-          {currentPolicy?.allowlist?.map((key: string, idx: number) => (
-            <div key={idx} className="bg-white/[0.02] border border-white/[0.05] p-3 rounded-xl flex justify-between items-center group">
-              <span className="font-mono text-[10px] text-[#F0EBE3]/60">{key}</span>
-              <button className="text-[#FF4560] opacity-0 group-hover:opacity-100 transition-opacity">
-                <X className="w-4 h-4" />
-              </button>
+
+        <div className="divide-y divide-[var(--border)] border-y border-[var(--border)]">
+          {allowlist.length === 0 ? (
+            <div className="py-12 flex items-center justify-center">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)]">No addresses allowlisted</p>
             </div>
-          ))}
-          {!currentPolicy?.allowlist?.length && (
-            <div className="h-full flex flex-col items-center justify-center py-8 opacity-20">
-              <Terminal className="w-8 h-8 mb-2" />
-              <p className="text-[10px] font-mono uppercase tracking-widest text-center">Allowlist Empty — Vault Locked</p>
-            </div>
+          ) : (
+            allowlist.map((addr) => (
+              <div key={addr} className="flex items-center justify-between py-4">
+                <span className="text-[11px] font-mono text-[var(--text-secondary)]">
+                  {addr.slice(0, 8)}...{addr.slice(-8)}
+                </span>
+                <button onClick={() => removeRecipient(addr)} className="text-[var(--text-muted)] hover:text-[var(--danger)] transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ))
           )}
         </div>
       </div>
 
       <button 
+        onClick={handleSave}
         disabled={isLoading}
-        onClick={() => onUpdate({ maxTx, dailyLimit })}
-        className="w-full bg-[#00A19B] hover:bg-[#00C4BD] disabled:opacity-50 disabled:cursor-not-allowed text-[#0A0A0F] font-bold py-4 rounded-xl transition-all shadow-[0_0_24px_rgba(0,161,155,0.1)] active:scale-[0.98]"
+        className="w-full leashd-button-primary !py-5 !text-[13px] flex items-center justify-center gap-3"
       >
-        {isLoading ? 'PROCESSING...' : 'SYNC ON-CHAIN POLICY'}
+        {isLoading ? (
+          <div className="w-4 h-4 border-2 border-[var(--bg-base)] border-t-transparent rounded-full animate-spin"></div>
+        ) : (
+          <>
+            <Save className="w-4 h-4" />
+            Update On-Chain Policy
+          </>
+        )}
       </button>
     </div>
   );
