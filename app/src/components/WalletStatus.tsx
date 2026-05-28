@@ -14,20 +14,20 @@ export const WalletStatus: React.FC<WalletStatusProps> = ({ balance, address, is
     : address;
 
   return (
-    <div className={`leashd-card space-y-8 ${isFrozen ? 'border-[var(--danger)] glow-danger' : ''}`}>
+    <div className={`leashd-card space-y-8 ${isFrozen ? 'border-[var(--danger)]' : ''}`}>
       <div className="flex items-center justify-between">
-        <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--text-secondary)]">Vault Status</h3>
+        <h3 className="text-[12px] font-medium text-[var(--text-secondary)]">Vault status</h3>
         <button onClick={onRefresh} className="p-2 hover:bg-[var(--bg-elevated)] transition-colors rounded-none group">
-          <RefreshCw className="w-3.5 h-3.5 text-[var(--text-muted)] group-hover:text-[var(--accent-teal)] transition-colors" />
+          <RefreshCw className="w-3.5 h-3.5 text-[var(--text-muted)] group-hover:text-[var(--text-primary)] transition-colors" />
         </button>
       </div>
 
       <div className="space-y-1">
         <div className="flex items-baseline gap-3">
           <span className="text-6xl font-mono tracking-tighter text-[var(--text-primary)]">{balance.toFixed(4)}</span>
-          <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-[var(--accent-teal)]">SOL</span>
+          <span className="text-[12px] font-medium text-[var(--accent-teal)]">SOL</span>
         </div>
-        <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-[0.4em] font-bold italic font-serif">Current Liquidity</p>
+        <p className="text-[13px] text-[var(--text-muted)] font-medium">Current liquidity</p>
       </div>
 
       <div className="space-y-4 border-t border-[var(--border)] pt-6">
@@ -40,11 +40,11 @@ export const WalletStatus: React.FC<WalletStatusProps> = ({ balance, address, is
         </div>
         <div className="data-row">
           <span className="data-label">Network</span>
-          <span className="data-value !text-[var(--accent-purple)] uppercase">Solana Devnet</span>
+          <span className="data-value !text-[var(--accent-purple)]">Solana Devnet</span>
         </div>
         <div className="data-row">
           <span className="data-label">Status</span>
-          <span className={`data-value uppercase ${isFrozen ? 'text-[var(--danger)]' : 'text-[var(--success)]'}`}>
+          <span className={`data-value ${isFrozen ? 'text-[var(--danger)]' : 'text-[var(--success)]'}`}>
             {isFrozen ? 'Frozen' : 'Active'}
           </span>
         </div>
@@ -53,7 +53,7 @@ export const WalletStatus: React.FC<WalletStatusProps> = ({ balance, address, is
       {isFrozen && (
         <div className="p-4 bg-[var(--danger)]/10 border border-[var(--danger)]/20 flex items-center gap-3">
           <ShieldOff className="w-4 h-4 text-[var(--danger)]" />
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--danger)]">
+          <p className="text-[12px] font-medium text-[var(--danger)]">
             Emergency lock active. All agent transactions blocked on-chain.
           </p>
         </div>

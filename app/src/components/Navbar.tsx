@@ -21,7 +21,7 @@ export const Navbar = () => {
             className="text-3xl italic font-serif text-[var(--text-primary)] hover:opacity-80 transition-opacity tracking-widest"
           >
             leashd
-            <span className="inline-block w-1.5 h-1.5 bg-[var(--accent-teal)] rounded-full ml-1 mb-1 shadow-[0_0_10px_var(--accent-teal)]"></span>
+            <span className="inline-block w-1.5 h-1.5 bg-[var(--accent-teal)] rounded-full ml-1 mb-1"></span>
           </button>
           
           <div className="hidden md:flex items-center gap-8">
@@ -29,7 +29,7 @@ export const Navbar = () => {
               <button
                 key={item}
                 onClick={() => scrollTo(item)}
-                className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                className="text-[12px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors capitalize"
               >
                 {item}
               </button>
@@ -38,7 +38,7 @@ export const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-6">
-          <WalletMultiButton className="!bg-[var(--bg-surface)] !border !border-[var(--border)] !rounded-none !h-10 !px-6 !text-[11px] !font-bold !uppercase !tracking-widest !transition-all hover:!border-[var(--accent-teal)]/40 hover:!bg-[var(--bg-elevated)]" />
+          <WalletMultiButton className="!bg-[var(--bg-surface)] !border !border-[var(--border)] !rounded-none !h-10 !px-6 !text-[12px] !font-medium !transition-colors hover:!border-[var(--border-hover)]" />
         </div>
       </div>
     </nav>

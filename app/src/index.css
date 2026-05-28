@@ -9,33 +9,31 @@
 
 :root {
   --bg-base: #0A0A0F;
-  --bg-surface: oklch(14% 0.01 260);
-  --bg-elevated: oklch(18% 0.01 260);
-  --border: oklch(100% 0 0 / 0.06);
-  --border-hover: oklch(65% 0.15 190 / 0.4);
+  --bg-surface: #13131F;
+  --bg-elevated: #1a1a2e;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-hover: rgba(255, 255, 255, 0.12);
   --text-primary: #F0EBE3;
-  --text-secondary: oklch(75% 0.01 60);
-  --text-muted: oklch(40% 0.01 60);
+  --text-secondary: rgba(240, 235, 227, 0.7);
+  --text-muted: rgba(240, 235, 227, 0.4);
   --accent-teal: #00A19B;
-  --accent-teal-glow: oklch(65% 0.15 190 / 0.15);
+  --accent-teal-glow: rgba(0, 161, 155, 0.15);
   --accent-purple: #7B61FF;
-  --accent-purple-glow: oklch(60% 0.2 270 / 0.15);
   --danger: #FF4560;
-  --danger-glow: oklch(65% 0.2 20 / 0.15);
-  --success: oklch(75% 0.15 160);
+  --success: #00A19B;
   
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @layer utilities {
   .animate-entrance {
-    animation: entrance 0.8s var(--ease-out-expo) both;
+    animation: fadeUp 0.5s var(--ease-out-expo) both;
   }
 
-  @keyframes entrance {
+  @keyframes fadeUp {
     from {
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(16px);
     }
     to {
       opacity: 1;
@@ -48,13 +46,12 @@
   body {
     @apply bg-[var(--bg-base)] text-[var(--text-primary)] antialiased selection:bg-[var(--accent-teal)]/30;
     font-family: var(--font-sans);
-    font-size: 16px;
-    line-height: 1.6;
+    font-size: 14px;
+    line-height: 1.5;
   }
 
   h1, h2, h3, .font-serif {
     font-family: var(--font-serif);
-    @apply italic uppercase tracking-wider;
   }
 
   .font-mono {
@@ -64,7 +61,7 @@
 
 @layer components {
   .leashd-card {
-    @apply bg-[var(--bg-surface)] border border-[var(--border)] rounded-none p-6 transition-all duration-300;
+    @apply bg-[var(--bg-surface)] border border-[var(--border)] rounded-none p-6 transition-colors duration-150;
   }
 
   .leashd-card:hover {
@@ -72,27 +69,27 @@
   }
 
   .leashd-button {
-    @apply px-6 py-3 font-bold uppercase tracking-widest text-[11px] transition-all active:scale-[0.98] rounded-none;
+    @apply px-6 py-3 font-medium text-[13px] transition-transform active:scale-[0.98] rounded-none;
   }
 
   .leashd-button-primary {
-    @apply px-6 py-3 font-bold uppercase tracking-widest text-[11px] transition-all active:scale-[0.98] rounded-none bg-[var(--accent-teal)] text-[var(--bg-base)] hover:bg-[var(--accent-teal)]/90;
+    @apply px-6 py-3 font-medium text-[13px] transition-transform active:scale-[0.98] rounded-none bg-[var(--accent-teal)] text-[var(--bg-base)] hover:bg-[var(--accent-teal)]/90;
   }
 
   .leashd-button-outline {
-    @apply px-6 py-3 font-bold uppercase tracking-widest text-[11px] transition-all active:scale-[0.98] rounded-none border border-[var(--border)] text-[var(--text-primary)] hover:border-[var(--accent-teal)]/40;
+    @apply px-6 py-3 font-medium text-[13px] transition-all active:scale-[0.98] rounded-none border border-[var(--border)] text-[var(--text-primary)] hover:border-[var(--accent-teal)]/40;
   }
 
   .leashd-input {
-    @apply bg-[var(--bg-elevated)] border border-[var(--border)] px-4 py-3 text-[13px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-teal)]/40 transition-colors w-full;
+    @apply bg-[var(--bg-surface)] border border-[var(--border)] px-4 py-3 text-[13px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-teal)]/40 transition-colors w-full;
   }
 
   .data-row {
-    @apply flex items-center justify-between py-3 border-b border-[var(--border)] text-[11px];
+    @apply flex items-center justify-between py-3 border-b border-[var(--border)] text-[12px];
   }
 
   .data-label {
-    @apply text-[var(--text-secondary)] uppercase tracking-widest font-bold;
+    @apply text-[var(--text-secondary)] font-medium;
   }
 
   .data-value {
@@ -118,20 +115,15 @@
   box-shadow: 0 0 40px var(--accent-teal-glow);
 }
 
-.glow-purple {
-  box-shadow: 0 0 40px var(--accent-purple-glow);
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-.glow-danger {
-  box-shadow: 0 0 40px var(--danger-glow);
-}
-
-.pulse-danger {
-  animation: pulse-danger 2s infinite;
-}
-
-@keyframes pulse-danger {
-  0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.4); }
-  70% { box-shadow: 0 0 0 20px rgba(255, 68, 68, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
 }

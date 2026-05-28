@@ -41,19 +41,19 @@ export const PolicyConfig: React.FC<PolicyConfigProps> = ({ currentPolicy, onUpd
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Settings className="w-5 h-5 text-[var(--accent-teal)]" />
-          <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--text-secondary)]">Guardrail Configuration</h3>
+          <h3 className="text-[12px] font-medium text-[var(--text-secondary)]">Guardrail configuration</h3>
         </div>
         <div className="flex items-center gap-2 px-3 py-1 bg-[var(--accent-teal)]/5 border border-[var(--accent-teal)]/20">
           <Info className="w-3 h-3 text-[var(--accent-teal)]" />
-          <span className="text-[9px] font-bold uppercase tracking-widest text-[var(--accent-teal)]">On-Chain Policy</span>
+          <span className="text-[10px] font-medium text-[var(--accent-teal)] uppercase tracking-wider">On-chain policy</span>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Max Transaction (SOL)</label>
-            <span className="text-[10px] font-mono text-[var(--accent-teal)]">Current: {currentPolicy.maxTxAmount}</span>
+            <label className="text-[12px] font-medium text-[var(--text-muted)]">Max transaction (SOL)</label>
+            <span className="text-[12px] font-mono text-[var(--accent-teal)]">Current: {currentPolicy.maxTxAmount}</span>
           </div>
           <input 
             type="number" 
@@ -62,15 +62,15 @@ export const PolicyConfig: React.FC<PolicyConfigProps> = ({ currentPolicy, onUpd
             className="leashd-input !text-lg !font-mono"
             placeholder="0.1"
           />
-          <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
+          <p className="text-[12px] text-[var(--text-muted)] leading-relaxed">
             Individual transaction cap. Any attempt above this is blocked by the program.
           </p>
         </div>
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Daily Spending Limit (SOL)</label>
-            <span className="text-[10px] font-mono text-[var(--accent-purple)]">Current: {currentPolicy.dailyLimit}</span>
+            <label className="text-[12px] font-medium text-[var(--text-muted)]">Daily limit (SOL)</label>
+            <span className="text-[12px] font-mono text-[var(--accent-purple)]">Current: {currentPolicy.dailyLimit}</span>
           </div>
           <input 
             type="number" 
@@ -79,21 +79,21 @@ export const PolicyConfig: React.FC<PolicyConfigProps> = ({ currentPolicy, onUpd
             className="leashd-input !text-lg !font-mono"
             placeholder="1.0"
           />
-          <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
+          <p className="text-[12px] text-[var(--text-muted)] leading-relaxed">
             Total spending allowed per 24h rolling window across all transactions.
           </p>
         </div>
       </div>
 
       <div className="space-y-6 pt-6 border-t border-[var(--border)]">
-        <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Recipient Allowlist</label>
+        <label className="text-[12px] font-medium text-[var(--text-muted)]">Recipient allowlist</label>
         
         <div className="flex gap-3">
           <input 
             type="text" 
             value={newRecipient}
             onChange={(e) => setNewRecipient(e.target.value)}
-            className="leashd-input !py-4 font-mono text-[11px]"
+            className="leashd-input !py-4 font-mono text-[13px]"
             placeholder="Enter Solana Address..."
           />
           <button 
@@ -107,12 +107,12 @@ export const PolicyConfig: React.FC<PolicyConfigProps> = ({ currentPolicy, onUpd
         <div className="divide-y divide-[var(--border)] border-y border-[var(--border)]">
           {allowlist.length === 0 ? (
             <div className="py-12 flex items-center justify-center">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)]">No addresses allowlisted</p>
+              <p className="text-[12px] font-medium text-[var(--text-muted)]">No addresses allowlisted</p>
             </div>
           ) : (
             allowlist.map((addr) => (
               <div key={addr} className="flex items-center justify-between py-4">
-                <span className="text-[11px] font-mono text-[var(--text-secondary)]">
+                <span className="text-[12px] font-mono text-[var(--text-secondary)]">
                   {addr.slice(0, 8)}...{addr.slice(-8)}
                 </span>
                 <button onClick={() => removeRecipient(addr)} className="text-[var(--text-muted)] hover:text-[var(--danger)] transition-colors">
@@ -127,14 +127,14 @@ export const PolicyConfig: React.FC<PolicyConfigProps> = ({ currentPolicy, onUpd
       <button 
         onClick={handleSave}
         disabled={isLoading}
-        className="w-full leashd-button-primary !py-5 !text-[13px] flex items-center justify-center gap-3"
+        className="w-full leashd-button-primary !py-5 flex items-center justify-center gap-3"
       >
         {isLoading ? (
-          <div className="w-4 h-4 border-2 border-[var(--bg-base)] border-t-transparent rounded-full animate-spin"></div>
+          'Updating...'
         ) : (
           <>
             <Save className="w-4 h-4" />
-            Update On-Chain Policy
+            Update policy
           </>
         )}
       </button>

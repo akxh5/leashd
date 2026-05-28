@@ -154,19 +154,19 @@ function Dashboard() {
 
         {!publicKey ? (
           <div className="flex flex-col items-center justify-center py-40 border border-dashed border-[var(--border)]">
-            <div className="w-20 h-20 bg-[var(--bg-surface)] border border-[var(--border)] flex items-center justify-center mb-10 glow-teal">
+            <div className="w-20 h-20 bg-[var(--bg-surface)] border border-[var(--border)] flex items-center justify-center mb-10">
               <Zap className="w-8 h-8 text-[var(--accent-teal)]" />
             </div>
             <h2 className="text-4xl italic mb-6">Connect to Secure</h2>
             <p className="text-[var(--text-secondary)] mb-12 max-w-md text-center text-[13px] leading-relaxed">
               Connect your Solana wallet to manage your agent's spending policies and monitor real-time activity.
             </p>
-            <WalletMultiButton className="!bg-[var(--accent-teal)] !text-[var(--bg-base)] !rounded-none !h-14 !px-10 !text-[13px] !font-bold !uppercase !tracking-widest" />
+            <WalletMultiButton className="!bg-[var(--accent-teal)] !text-[var(--bg-base)] !rounded-none !h-14 !px-10 !text-[14px] !font-medium !transition-transform !active:scale-[0.98]" />
           </div>
         ) : !walletConfig && !isLoading ? (
           <div className="max-w-2xl mx-auto py-20">
             <div className="leashd-card p-12 flex flex-col items-center text-center gap-10">
-              <div className="p-6 bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--accent-teal)] glow-teal">
+              <div className="p-6 bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--accent-teal)]">
                 <ShieldAlert className="w-12 h-12" />
               </div>
               <div className="space-y-4">
@@ -176,7 +176,7 @@ function Dashboard() {
                 </p>
               </div>
               <button onClick={handleInitialize} className="leashd-button-primary w-full py-6 text-[14px]">
-                Deploy Agent Vault →
+                Deploy vault
               </button>
             </div>
           </div>
@@ -257,10 +257,10 @@ function App() {
             <span className="inline-block w-2 h-2 bg-[var(--accent-teal)] rounded-full ml-2"></span>
           </div>
           <div className="space-y-4">
-            <p className="text-[11px] font-bold uppercase tracking-[0.5em] text-[var(--text-muted)]">
-              Autonomous Security Protocol v1.0
+            <p className="text-[12px] font-medium text-[var(--text-secondary)]">
+              Autonomous Security Protocol
             </p>
-            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest">
+            <p className="text-[12px] font-medium text-[var(--text-muted)]">
               Built for the agentic future of Solana.
             </p>
           </div>
