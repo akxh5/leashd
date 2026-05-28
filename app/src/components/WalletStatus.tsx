@@ -1,17 +1,29 @@
 import React from 'react';
-import { RefreshCw, ExternalLink, ShieldOff } from 'lucide-react';
+import { RefreshCw, ExternalLink, ShieldOff, Copy, Check } from 'lucide-react';
+import { PublicKey } from '@solana/web3.js';
 
 interface WalletStatusProps {
   balance: number;
   address: string;
+  agentPubkey?: PublicKey | null;
   isFrozen: boolean;
   onRefresh: () => void;
 }
 
-export const WalletStatus: React.FC<WalletStatusProps> = ({ balance, address, isFrozen, onRefresh }) => {
+export const WalletStatus: React.FC<WalletStatusProps> = ({ balance, address, agentPubkey, isFrozen, onRefresh }) => {
+  const [copied, setCopied] = React.useState(false);
+
   const truncatedAddress = address !== "Not Deployed" 
     ? `${address.slice(0, 6)}...${address.slice(-6)}` 
     : address;
+
+  const copyAgent = () => {
+    if (agentPubkey) {
+      navigator.clipboard.writeText(agentPubkey.toBase58());
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   return (
     <div className={`leashd-card space-y-8 ${isFrozen ? 'border-[var(--danger)]' : ''}`}>
@@ -38,6 +50,20 @@ export const WalletStatus: React.FC<WalletStatusProps> = ({ balance, address, is
             <ExternalLink className="w-3 h-3 text-[var(--text-muted)]" />
           </div>
         </div>
+        
+        {agentPubkey && (
+          <div className="data-row">
+            <span className="data-label">Authorized Agent</span>
+            <button 
+              onClick={copyAgent}
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            >
+              <span className="data-value">{agentPubkey.toBase58().slice(0, 4)}...{agentPubkey.toBase58().slice(-4)}</span>
+              {copied ? <Check className="w-3 h-3 text-[var(--success)]" /> : <Copy className="w-3 h-3 text-[var(--text-muted)]" />}
+            </button>
+          </div>
+        )}
+
         <div className="data-row">
           <span className="data-label">Network</span>
           <span className="data-value !text-[var(--accent-purple)]">Solana Devnet</span>

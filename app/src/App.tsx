@@ -5,19 +5,22 @@ import { PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { motion } from 'framer-motion';
 import { useProgram } from './hooks/useProgram';
 import { useLenis } from './hooks/useLenis';
+import { useAuth } from './hooks/useAuth';
+import { api } from './lib/api';
 import { WalletStatus } from './components/WalletStatus';
 import { KillSwitch } from './components/KillSwitch';
 import { PolicyConfig } from './components/PolicyConfig';
 import { TransactionFeed, Transaction } from './components/TransactionFeed';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
-import { startAgent } from './agent';
+import { startAgent, getAgentPublicKey } from './agent';
 import { ShieldAlert, Zap, AlertCircle, Lock } from 'lucide-react';
 
 function Dashboard() {
   const { connection } = useConnection();
   const { publicKey } = useWallet();
   const program = useProgram();
+  const { user, loading: authLoading } = useAuth();
 
   const [isFrozen, setIsFrozen] = useState(false);
   const [balance, setBalance] = useState(0);
@@ -25,7 +28,6 @@ function Dashboard() {
   const [walletConfig, setWalletConfig] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-
   const [configPda, setConfigPda] = useState<PublicKey | null>(null);
 
   const isOwner = useMemo(() => {
@@ -33,7 +35,7 @@ function Dashboard() {
     return publicKey.toBase58() === walletConfig.owner.toBase58();
   }, [publicKey, walletConfig]);
 
-  const fetchState = async () => {
+  const fetchState = useCallback(async () => {
     if (!publicKey || !program) return;
 
     try {
@@ -71,7 +73,7 @@ function Dashboard() {
       console.error('Unexpected fetchState error:', err);
       setError(msg);
     }
-  };
+  }, [publicKey, program, connection]);
 
   useEffect(() => {
     fetchState();
@@ -79,19 +81,74 @@ function Dashboard() {
     return () => clearInterval(id);
   }, [fetchState]);
 
+  // FIX 1 — Register wallet in backend
+  useEffect(() => {
+    if (!publicKey || !walletConfig || !user || !configPda) return;
+    
+    api.wallets.create({
+      name: 'My Agent Wallet',
+      pdaAddress: configPda.toBase58(),
+      ownerPubkey: publicKey.toBase58(),
+      agentPubkey: walletConfig.agent.toBase58(),
+      cluster: 'devnet',
+      policy: {
+        maxTxAmount: Number(walletConfig.maxTxAmount),
+        dailyLimit: Number(walletConfig.dailyLimit),
+        cooldownSecs: Number(walletConfig.cooldownSeconds),
+        windowDuration: Number(walletConfig.windowDuration),
+        allowlist: walletConfig.allowlist.map((p: any) => p.toBase58())
+      }
+    }).catch(() => {
+      // Wallet already registered — ignore 409 conflict
+    });
+  }, [publicKey, walletConfig, user, configPda]);
+
+  // FIX 2 — Load transaction history from backend
+  useEffect(() => {
+    if (!user || !publicKey) return;
+    
+    api.wallets.list().then((wallets: any[]) => {
+      const match = wallets.find(
+        w => w.ownerPubkey === publicKey.toBase58()
+      );
+      if (!match) return;
+      
+      api.transactions.list(match.id).then((data: any) => {
+        const history = data.transactions.map((tx: any) => ({
+          id: tx.id,
+          success: tx.status === 'success',
+          amount: Number(tx.amount) / LAMPORTS_PER_SOL,
+          recipient: tx.recipient,
+          error: tx.blockReason || undefined,
+          signature: tx.signature || undefined,
+          timestamp: new Date(tx.timestamp)
+        }));
+        setTransactions(history);
+      });
+    }).catch(console.error);
+  }, [user, publicKey]);
+
   useEffect(() => {
     if (program && publicKey && configPda && walletConfig && isOwner) {
-      const stopAgent = startAgent(
-        program,
-        publicKey,
-        configPda,
-        walletConfig.allowlist.length > 0 ? walletConfig.allowlist : [PublicKey.default],
-        (result) => {
-          setTransactions(prev => [result, ...prev].slice(0, 50));
-          fetchState();
-        }
-      );
-      return () => stopAgent();
+      // Find wallet ID for agent recording
+      let walletDbId: string | undefined;
+      api.wallets.list().then(wallets => {
+        const match = wallets.find((w: any) => w.pdaAddress === configPda.toBase58());
+        if (match) walletDbId = match.id;
+        
+        const stopAgent = startAgent(
+          program,
+          publicKey,
+          configPda,
+          walletConfig.allowlist.length > 0 ? walletConfig.allowlist : [PublicKey.default],
+          (result) => {
+            setTransactions(prev => [result as any, ...prev].slice(0, 50));
+            fetchState();
+          },
+          walletDbId
+        );
+        return () => stopAgent();
+      }).catch(console.error);
     }
   }, [program, publicKey, configPda, walletConfig, isOwner, fetchState]);
 
@@ -99,9 +156,10 @@ function Dashboard() {
     if (!publicKey || !program) return;
     setIsLoading(true);
     try {
+      // FIX 5 — Use session agent public key
       await program.methods
         .initializeWallet({
-          agent: publicKey, 
+          agent: getAgentPublicKey(), 
           maxTxAmount: (0.1 * LAMPORTS_PER_SOL) as any,
           dailyLimit: (0.5 * LAMPORTS_PER_SOL) as any,
           windowDuration: (24 * 60 * 60) as any,
@@ -165,7 +223,11 @@ function Dashboard() {
         </div>
       )}
 
-      {!publicKey ? (
+      {authLoading ? (
+        <div className="flex items-center justify-center py-40">
+          <div className="w-8 h-8 border-2 border-[var(--accent-teal)] border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      ) : !publicKey ? (
         <div className="flex flex-col items-center justify-center py-40 border border-dashed border-[var(--border)]">
           <div className="w-20 h-20 bg-[var(--bg-surface)] border border-[var(--border)] flex items-center justify-center mb-10">
             <Zap className="w-8 h-8 text-[var(--accent-teal)]" />
@@ -187,6 +249,10 @@ function Dashboard() {
               <p className="text-[var(--text-secondary)] leading-relaxed text-[15px] font-light">
                 Deploy your on-chain security layer to begin enforcing policies on your autonomous agent.
               </p>
+              <div className="p-4 bg-[var(--bg-surface)] border border-[var(--border)] rounded text-left">
+                <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest mb-1">Assigned Agent</p>
+                <p className="text-[12px] font-mono text-[var(--text-primary)]">{getAgentPublicKey().toBase58()}</p>
+              </div>
             </div>
             <button onClick={handleInitialize} className="leashd-button-primary w-full py-6 text-[14px]">
               Deploy vault
@@ -196,9 +262,11 @@ function Dashboard() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           <div className="lg:col-span-4 flex flex-col gap-10 animate-entrance" style={{ animationDelay: '0.1s' }}>
+            {/* FIX 4 — Pass agent public key */}
             <WalletStatus 
               balance={balance} 
               address={configPda?.toBase58() || "Not Deployed"} 
+              agentPubkey={getAgentPublicKey()}
               isFrozen={isFrozen}
               onRefresh={fetchState}
             />

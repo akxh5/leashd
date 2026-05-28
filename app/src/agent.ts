@@ -1,5 +1,5 @@
 import { BN } from "@coral-xyz/anchor";
-import { PublicKey, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Keypair, PublicKey, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { api } from './lib/api';
 
 export interface AgentResult {
@@ -8,66 +8,106 @@ export interface AgentResult {
   amount: number;
   success: boolean;
   error?: string;
-  timestamp: number;
+  timestamp: Date;
+}
+
+// Get or create agent keypair for this session
+function getAgentKeypair(): Keypair {
+  const stored = sessionStorage.getItem('leashd_agent_key');
+  if (stored) {
+    try {
+      return Keypair.fromSecretKey(
+        Uint8Array.from(JSON.parse(stored))
+      );
+    } catch (e) {
+      sessionStorage.removeItem('leashd_agent_key');
+    }
+  }
+  const keypair = Keypair.generate();
+  sessionStorage.setItem(
+    'leashd_agent_key',
+    JSON.stringify(Array.from(keypair.secretKey))
+  );
+  return keypair;
+}
+
+export function getAgentPublicKey(): PublicKey {
+  return getAgentKeypair().publicKey;
 }
 
 export function startAgent(
   program: any,
-  owner: PublicKey,
+  ownerPubkey: PublicKey,
   walletConfigPDA: PublicKey,
   recipients: PublicKey[],
   onResult: (result: AgentResult) => void,
-  walletDbId?: string // Optional DB ID for recording stats
-) {
+  walletDbId?: string
+): () => void {
+  const agentKeypair = getAgentKeypair();
+
   const intervalId = setInterval(async () => {
-    const amountSOL = Math.random() * (0.12 - 0.01) + 0.01;
-    const amountLamports = new BN(Math.floor(amountSOL * LAMPORTS_PER_SOL));
+    if (recipients.length === 0) return;
+    
     const recipient = recipients[Math.floor(Math.random() * recipients.length)] || PublicKey.default;
-    const recipientAddress = recipient.toBase58();
+    const solAmount = Math.random() * (0.12 - 0.01) + 0.01;
+    const lamports = Math.floor(solAmount * LAMPORTS_PER_SOL);
 
     try {
-      const signature = await program.methods
-        .executeTransfer(amountLamports)
+      const sig = await program.methods
+        .executeTransfer(new BN(lamports))
         .accounts({
-          agent: owner,
-          owner: owner,
+          agent: agentKeypair.publicKey,
+          owner: ownerPubkey,
           walletConfig: walletConfigPDA,
-          recipient: recipient,
+          recipient,
           systemProgram: SystemProgram.programId,
         })
+        .signers([agentKeypair])
         .rpc();
 
       onResult({
         success: true,
-        amount: amountSOL,
-        recipient: recipientAddress,
-        signature: signature as string,
-        timestamp: Date.now(),
-      });
-    } catch (err: any) {
-      const errorMsg = err.message || 'Unknown error';
-      
-      onResult({
-        success: false,
-        amount: amountSOL,
-        recipient: recipientAddress,
-        error: errorMsg,
-        signature: "",
-        timestamp: Date.now(),
+        amount: solAmount,
+        recipient: recipient.toBase58(),
+        signature: sig as string,
+        timestamp: new Date()
       });
 
-      // Record blocked transaction in backend if wallet ID is provided
+    } catch (err: any) {
+      const errorMsg = err?.message || 'Unknown error';
+      const blockReason = extractBlockReason(errorMsg);
+
+      onResult({
+        success: false,
+        amount: solAmount,
+        recipient: recipient.toBase58(),
+        error: blockReason,
+        signature: "",
+        timestamp: new Date()
+      });
+
+      // Record blocked tx in backend if wallet ID is provided
       if (walletDbId) {
         api.transactions.recordBlocked({
           walletId: walletDbId,
-          recipient: recipientAddress,
-          amount: Math.floor(amountSOL * LAMPORTS_PER_SOL), // Record in lamports
-          blockReason: errorMsg,
-          agentPubkey: owner.toBase58()
-        }).catch(console.error);
+          recipient: recipient.toBase58(),
+          amount: lamports,
+          blockReason,
+          agentPubkey: agentKeypair.publicKey.toBase58()
+        }).catch(() => {});
       }
     }
   }, 5000);
 
   return () => clearInterval(intervalId);
+}
+
+function extractBlockReason(msg: string): string {
+  if (msg.includes('WalletFrozen')) return 'WalletFrozen';
+  if (msg.includes('ExceedsTransactionLimit')) return 'ExceedsTransactionLimit';
+  if (msg.includes('RecipientNotAllowed')) return 'RecipientNotAllowed';
+  if (msg.includes('CooldownNotElapsed')) return 'CooldownNotElapsed';
+  if (msg.includes('ExceedsDailyLimit')) return 'ExceedsDailyLimit';
+  if (msg.includes('insufficient funds')) return 'InsufficientFunds';
+  return 'TransactionFailed';
 }
