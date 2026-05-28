@@ -51,12 +51,15 @@ function Dashboard() {
       setIsFrozen(config.isFrozen);
       setError(null);
     } catch (err: any) {
-      console.error("Error fetching state:", err);
-      if (err.message.includes("Account does not exist")) {
+      // Account not initialized yet — expected state
+      if (err?.message?.includes('Account does not exist') ||
+          err?.message?.includes('has no data')) {
         setWalletConfig(null);
-      } else {
-        setError("Failed to fetch wallet config");
+        return;
       }
+      // Only log unexpected errors
+      console.error("Error fetching state:", err);
+      setError("Failed to fetch wallet config");
     }
   }, [publicKey, program, connection]);
 
