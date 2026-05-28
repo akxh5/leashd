@@ -1,3 +1,8 @@
+import { Buffer } from 'buffer'
+window.Buffer = Buffer
+import { EventEmitter } from 'events'
+EventEmitter.defaultMaxListeners = 20
+
 import { StrictMode, useMemo } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react'
