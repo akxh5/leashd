@@ -355,7 +355,7 @@ function App() {
                   key={item.label}
                   initial={{ opacity: 0, x: 16 }}
                   whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true, margin: '-60px' }}
+                  viewport={{ once: true, margin: '-80px' }}
                   transition={{ duration: 0.5, delay: i * 0.08 }}
                   className="flex items-start gap-4 py-6 border-b group hover:pl-2 transition-all duration-300"
                   style={{ borderColor: 'rgba(255,255,255,0.06)' }}

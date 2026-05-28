@@ -135,7 +135,6 @@ export const Lightning: React.FC<LightningProps> = ({
     let animId: number
 
     const render = () => {
-      resizeCanvas()
       gl.viewport(0, 0, canvas.width, canvas.height)
       gl.uniform2f(uRes, canvas.width, canvas.height)
       gl.uniform1f(uTime, (performance.now() - start) / 1000)

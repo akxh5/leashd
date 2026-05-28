@@ -8,10 +8,6 @@
   --font-cormorant: "Cormorant Garamond", serif;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
 :root {
   --bg-base: #0A0A0F;
   --bg-surface: #13131F;
