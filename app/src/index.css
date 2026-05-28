@@ -1,10 +1,15 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@1,400;1,500;1,600&display=swap');
 
 @theme {
   --font-serif: "Instrument Serif", serif;
   --font-mono: "DM Mono", monospace;
   --font-sans: "Inter", sans-serif;
+  --font-cormorant: "Cormorant Garamond", serif;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 :root {
@@ -94,6 +99,10 @@
 
   .data-value {
     @apply font-mono text-[var(--text-primary)];
+  }
+
+  .wallet-button-wrapper .wallet-adapter-button {
+    @apply !bg-transparent !text-[var(--accent-teal)] !text-[13px] !font-medium !h-9 !px-4 !rounded-[6px] !transition-colors hover:!bg-[var(--accent-teal)]/5;
   }
 }
 

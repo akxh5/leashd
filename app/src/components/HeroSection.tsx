@@ -4,7 +4,7 @@ import { Lightning } from './ui/lightning';
 
 export const HeroSection = () => {
   return (
-    <section id="hero" className="relative w-full min-h-[100dvh] flex flex-col overflow-hidden bg-[#0A0A0F]">
+    <section id="hero" className="relative w-full min-h-[100dvh] flex flex-col overflow-hidden bg-[#0A0A0F] pt-16">
       
       {/* Lightning background — full bleed */}
       <div className="absolute inset-0 z-0">
