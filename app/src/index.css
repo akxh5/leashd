@@ -115,15 +115,22 @@
   box-shadow: 0 0 40px var(--accent-teal-glow);
 }
 
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.animate-pulse-teal {
+  animation: pulse-teal 2s infinite;
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: .5;
-  }
+@keyframes pulse-teal {
+  0% { box-shadow: 0 0 0 0 rgba(0, 161, 155, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(0, 161, 155, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 161, 155, 0); }
+}
+
+.animate-pulse-red {
+  animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+  0% { box-shadow: 0 0 0 0 rgba(255, 69, 96, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(255, 69, 96, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 69, 96, 0); }
 }
