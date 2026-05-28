@@ -33,35 +33,45 @@ function Dashboard() {
     return publicKey.toBase58() === walletConfig.owner.toBase58();
   }, [publicKey, walletConfig]);
 
-  const fetchState = useCallback(async () => {
+  const fetchState = async () => {
     if (!publicKey || !program) return;
 
     try {
-      const [pda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("wallet_config"), publicKey.toBuffer()],
+      const [configPDA] = PublicKey.findProgramAddressSync(
+        [Buffer.from('wallet_config'), publicKey.toBuffer()],
         program.programId
       );
-      setConfigPda(pda);
 
-      const bal = await connection.getBalance(pda);
-      setBalance(bal / LAMPORTS_PER_SOL);
-
-      const config = await (program.account as any).walletConfig.fetch(pda);
+      const config = await (program.account as any).walletConfig.fetch(configPDA);
+      
       setWalletConfig(config);
       setIsFrozen(config.isFrozen);
       setError(null);
+
+      // Update balance
+      const bal = await connection.getBalance(configPDA);
+      setBalance(bal / LAMPORTS_PER_SOL);
+      setConfigPda(configPDA);
+
     } catch (err: any) {
-      // Account not initialized yet — expected state
-      if (err?.message?.includes('Account does not exist') ||
-          err?.message?.includes('has no data')) {
+      const msg = err?.message || '';
+
+      // These are expected — account not initialized yet
+      if (
+        msg.includes('Account does not exist') ||
+        msg.includes('has no data') ||
+        msg.includes('could not find account')
+      ) {
         setWalletConfig(null);
+        setError(null);
         return;
       }
-      // Only log unexpected errors
-      console.error("Error fetching state:", err);
-      setError("Failed to fetch wallet config");
+
+      // Only log genuinely unexpected errors
+      console.error('Unexpected fetchState error:', err);
+      setError(msg);
     }
-  }, [publicKey, program, connection]);
+  };
 
   useEffect(() => {
     fetchState();
